@@ -1,0 +1,26 @@
+{
+  "name": "iris-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "startserver": "nodemon ./server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davilasergio1995/node-tutorial.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davilasergio1995/node-tutorial/issues"
+  },
+  "homepage": "https://github.com/davilasergio1995/node-tutorial#readme",
+  "dependencies": {
+    "axios": "^0.23.0",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.14"
+  }
+}
