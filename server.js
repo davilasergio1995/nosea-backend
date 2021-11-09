@@ -108,5 +108,3 @@ alessa.listen(8000,() => {
 
 //[1] Bugged. Initial GET request successful and any POST request successful, but after first 1-3 POST requests
 //(sending messages to append to chat.json), GET request throws back a 500 server error.
-
-//[2] Extremely insecure. Security libraries such as Bcrypt offer fixes, will implement in a later session
