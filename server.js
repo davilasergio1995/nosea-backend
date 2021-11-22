@@ -4,14 +4,15 @@
 const express = require('express');
 const alessa = express();
 const path = require('path');
-const chatJson = path.join(__dirname, '/database', 'chat.json');
 const users = path.join(__dirname, '/database','users.json');
+const mainChat = path.join(__dirname, '/database', 'main.json');
 const {readFile, writeFile} = require('fs');
 const bcrypt = require('bcrypt');
 const util = require('util');
-const e = require('express');
 const readFilePromise = util.promisify(readFile);
 const writeFilePromise = util.promisify(writeFile);
+const jwt = require('jsonwebtoken');
+const keys = require('dotenv').config();
 
 //parses JSON data
 alessa.use(express.json());
@@ -19,30 +20,80 @@ alessa.use(express.json());
 //allows use of files from specified folder (not yet implemented but code added for potential usability)
 alessa.use(express.static('database'));
 
-//Sends chat log .JSON file [1]
-alessa.get('/api/chatLogs/',(req,res) => {
+//Signs user in. If user exists and username/password are valid, server returns a token. If user doesn't exist or username/password
+//aren't valid, user receives an error.
+alessa.post('/api/users/login', async (req,res) => {
+    let login=req.body;
+    let fileRead = await readFilePromise(users);
+    let parsedUsers = JSON.parse(fileRead);
+    let user = parsedUsers.find(e => e.username === login.username);
+    if (user === undefined) {
+        res.send('no user');
+    };
+    try {
+        if (await bcrypt.compare(login.password,user.password)) {
+        //JWT creation
+            const username=login.username;
+            const userObj = {username: username};
+            const accessToken = jwt.sign(userObj, process.env.A_TOKEN_SECRET_KEY);
+            res.json({accessToken: accessToken});
+        } else {
+            res.send('no password');
+        }
+    } catch {
+        res.status(500).send();
+    }
+});
 
-    res.header("Content-type" , "application/json");
-    res.sendFile(chatJson);
-    
+let verifyToken = (req, res, next) => {
+    const authHeader = req.body.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token === null) res.sendStatus(401);
+    jwt.verify(token,process.env.A_TOKEN_SECRET_KEY, (err,user) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            req.user = user;
+            next();
+        }
+    });
+}
+
+//Sends chat log .JSON file [1]
+alessa.post('/api/mainchatget/',verifyToken,(req,res) => {
+    res.setHeader("Content-type","application/json");
+    try {readFile(mainChat,(err, data) => {
+        if (err) {
+            console.log(err);
+        } else {
+        let json = JSON.parse(data);
+        res.send(json);
+        };
+        
+    })} catch(err){
+        console.log(err);
+    }
 });
 
 
 //Accepts .JSON data and pushes into chat log .JSON file [1]
-alessa.post('/api/chatLogs/',(req,res) => {
+alessa.post('/api/mainchatpost/',verifyToken,(req,res) => {
+    res.setHeader("Content-type","application/json");
     res.sendStatus(200);
-    req.body;
-    readFile(chatJson,(err,data) => {
+    readFile(mainChat,(err,data) => {
         if (err) {
             console.log(err);
         } else {
             let json = JSON.parse(data);
-            json.push(req.body);
-            writeFile(chatJson,JSON.stringify(json), (err) => {
-                if (err) {
-                    console.log(err);
+            if (req.body.message !== null) {
+                json.push(req.body.message);
+                writeFile(mainChat,JSON.stringify(json),(err) => {
+                    if (err) {
+                        console.log(err);
                 }
-            })
+            }); 
+            }
+             
         }
     });
 });
@@ -79,26 +130,7 @@ alessa.post('/api/users/signup', async(req,res) => {
     }
 });
 
-//Signs user in. If user exists and username/password are valid, server returns a token. If user doesn't exist or username/password
-//aren't valid, user receives an error.
-alessa.post('/api/users/login', async (req,res) => {
-    let login=req.body;
-    let fileRead = await readFilePromise(users);
-    let parsedUsers = JSON.parse(fileRead);
-    let user = parsedUsers.find(e => e.username === login.username);
-    if (user === null) {
-        res.status(400).send('User doesn\'t exist');
-    };
-    try {
-        if (await bcrypt.compare(login.password,user.password)) {
-            res.send('a-ok');
-        } else {
-            res.send('Username/password incorrect');
-        }
-    } catch {
-        res.status(500).send();
-    }
-});
+
 
 
 //Activates server, logs a message when successful
