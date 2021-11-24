@@ -20,6 +20,10 @@ alessa.use(express.json());
 //allows use of files from specified folder (not yet implemented but code added for potential usability)
 alessa.use(express.static('database'));
 
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  });
+
 //Signs user in. If user exists and username/password are valid, server returns a token. If user doesn't exist or username/password
 //aren't valid, user receives an error.
 alessa.post('/api/users/login', async (req,res) => {
