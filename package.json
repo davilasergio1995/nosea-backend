@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "startserver": "nodemon ./server.js"
+    "startserver": "nodemon ./server.js --ignore client"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,12 @@
   "homepage": "https://github.com/davilasergio1995/node-tutorial#readme",
   "dependencies": {
     "axios": "^0.23.0",
+    "bcrypt": "^5.0.1",
+    "crypto": "^1.0.1",
+    "dotenv": "^10.0.0",
+    "eslint": "^8.1.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.14"
   }
 }
